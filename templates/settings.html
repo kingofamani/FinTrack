@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FinTrack 設置</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <style>
+        .settings-section {
+            margin-bottom: 30px;
+        }
+        
+        .form-group {
+            margin-bottom: 15px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        
+        .form-group input, .form-group select {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        
+        .api-key-field {
+            display: none;
+        }
+        
+        .status-message {
+            margin-top: 15px;
+            padding: 10px;
+            border-radius: 4px;
+        }
+        
+        .success {
+            background-color: #d4edda;
+            color: #155724;
+        }
+        
+        .error {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>FinTrack 設置</h1>
+            <p>配置應用程式設置</p>
+            <a href="/" class="btn-secondary" style="display: inline-block; margin-top: 10px;">返回主頁</a>
+        </header>
+
+        <section class="settings-section">
+            <h2>AI 解析器設置</h2>
+            <p>選擇用於解析交易文本的 AI 服務</p>
+            
+            <form id="parser-form">
+                <div class="form-group">
+                    <label for="parser-type">解析器類型</label>
+                    <select id="parser-type" name="parser-type">
+                        <option value="local">本地規則解析器</option>
+                        <option value="openai">OpenAI API</option>
+                        <option value="xai_grok">XAI Grok API</option>
+                    </select>
+                </div>
+                
+                <div id="openai-fields" class="api-key-field">
+                    <div class="form-group">
+                        <label for="openai-api-key">OpenAI API 密鑰</label>
+                        <input type="password" id="openai-api-key" name="openai-api-key" placeholder="輸入 OpenAI API 密鑰">
+                    </div>
+                    <div class="form-group">
+                        <label for="openai-model">模型</label>
+                        <select id="openai-model" name="openai-model">
+                            <option value="gpt-3.5-turbo">GPT-3.5 Turbo</option>
+                            <option value="gpt-4">GPT-4</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div id="xai-grok-fields" class="api-key-field">
+                    <div class="form-group">
+                        <label for="xai-grok-api-key">XAI Grok API 密鑰</label>
+                        <input type="password" id="xai-grok-api-key" name="xai-grok-api-key" placeholder="輸入 XAI Grok API 密鑰">
+                    </div>
+                </div>
+                
+                <button type="submit" class="btn-primary">保存設置</button>
+            </form>
+            
+            <div id="status-message" class="status-message" style="display: none;"></div>
+        </section>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const parserTypeSelect = document.getElementById('parser-type');
+            const openaiFields = document.getElementById('openai-fields');
+            const xaiGrokFields = document.getElementById('xai-grok-fields');
+            const parserForm = document.getElementById('parser-form');
+            const statusMessage = document.getElementById('status-message');
+            
+            // 根據選擇的解析器類型顯示相應的字段
+            parserTypeSelect.addEventListener('change', function() {
+                openaiFields.style.display = 'none';
+                xaiGrokFields.style.display = 'none';
+                
+                if (this.value === 'openai') {
+                    openaiFields.style.display = 'block';
+                } else if (this.value === 'xai_grok') {
+                    xaiGrokFields.style.display = 'block';
+                }
+            });
+            
+            // 表單提交
+            parserForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                const parserType = parserTypeSelect.value;
+                let apiKey = null;
+                let model = null;
+                
+                if (parserType === 'openai') {
+                    apiKey = document.getElementById('openai-api-key').value;
+                    model = document.getElementById('openai-model').value;
+                } else if (parserType === 'xai_grok') {
+                    apiKey = document.getElementById('xai-grok-api-key').value;
+                }
+                
+                // 構建請求數據
+                const data = {
+                    type: parserType,
+                    api_key: apiKey
+                };
+                
+                if (model) {
+                    data.model = model;
+                }
+                
+                // 發送請求
+                fetch('/api/config/parser', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(data)
+                })
+                .then(response => response.json())
+                .then(result => {
+                    statusMessage.textContent = result.message;
+                    statusMessage.className = result.success ? 'status-message success' : 'status-message error';
+                    statusMessage.style.display = 'block';
+                    
+                    // 5 秒後隱藏消息
+                    setTimeout(() => {
+                        statusMessage.style.display = 'none';
+                    }, 5000);
+                })
+                .catch(error => {
+                    statusMessage.textContent = `錯誤: ${error.message}`;
+                    statusMessage.className = 'status-message error';
+                    statusMessage.style.display = 'block';
+                });
+            });
+        });
+    </script>
+</body>
+</html> 

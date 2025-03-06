@@ -1,4 +1,4 @@
-# Python 虛擬環境
+﻿# Python 虛擬環境
 .venv/
 venv/
 env/
@@ -20,4 +20,11 @@ transactions.json
 
 # 系統檔案
 .DS_Store
-Thumbs.db 
+Thumbs.db
+
+# 配置檔案（包含敏感資訊）
+config.json
+.env
+
+# 但保留範例檔案
+!config.example.json

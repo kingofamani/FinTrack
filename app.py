@@ -1,10 +1,71 @@
 from flask import Flask, request, jsonify, render_template
 import re
 import json
+import os
 from localJsonStorage import LocalJsonStorage
+from aiParser import create_parser
 
 app = Flask(__name__)
 data_storage = LocalJsonStorage()
+
+# 配置檔案路徑
+CONFIG_FILE = 'config.json'
+
+# 讀取配置檔案
+def load_config():
+    """
+    讀取配置檔案
+    
+    Returns:
+        dict: 配置數據
+    """
+    default_config = {
+        "parser_type": "local",
+        "openai_api_key": None,
+        "xai_grok_api_key": None,
+        "openai_model": "gpt-3.5-turbo"
+    }
+    
+    try:
+        if os.path.exists(CONFIG_FILE):
+            with open(CONFIG_FILE, 'r', encoding='utf-8') as f:
+                config = json.load(f)
+                # 合併預設配置和讀取的配置
+                for key, value in default_config.items():
+                    if key not in config:
+                        config[key] = value
+                return config
+    except Exception as e:
+        print(f"讀取配置檔案錯誤: {str(e)}")
+    
+    return default_config
+
+# 載入配置
+config = load_config()
+
+# 創建解析器
+# 優先使用環境變量，其次使用配置檔案
+parser_type = os.environ.get("AI_PARSER_TYPE", config.get("parser_type", "local"))
+
+# 準備解析器參數
+parser_kwargs = {}
+if parser_type == "openai":
+    api_key = os.environ.get("OPENAI_API_KEY", config.get("openai_api_key"))
+    model = os.environ.get("OPENAI_MODEL", config.get("openai_model", "gpt-3.5-turbo"))
+    if api_key:
+        parser_kwargs["api_key"] = api_key
+        parser_kwargs["model"] = model
+elif parser_type == "xai_grok":
+    api_key = os.environ.get("XAI_GROK_API_KEY", config.get("xai_grok_api_key"))
+    if api_key:
+        parser_kwargs["api_key"] = api_key
+
+try:
+    # 嘗試創建指定類型的解析器
+    transaction_parser = create_parser(parser_type, **parser_kwargs)
+except Exception as e:
+    print(f"無法創建 {parser_type} 解析器: {str(e)}，使用本地規則解析器作為備用")
+    transaction_parser = create_parser("local")
 
 @app.route('/')
 def index():
@@ -22,8 +83,8 @@ def parse_text():
         data = request.json
         text = data.get('text', '')
         
-        # 解析文本
-        transaction = parse_transaction_text(text)
+        # 使用 AI 解析器解析文本
+        transaction = transaction_parser.parse_transaction(text)
         
         return jsonify(transaction)
     except Exception as e:
@@ -65,90 +126,6 @@ def get_data():
         return jsonify(data)
     except Exception as e:
         return jsonify({"error": str(e)}), 500
-
-def parse_transaction_text(text):
-    """
-    解析交易文本
-    
-    Args:
-        text (str): 語音識別文本，例如「咖啡 5 元」
-        
-    Returns:
-        dict: 解析後的交易數據
-    """
-    # 預設為支出
-    transaction_type = "expense"
-    
-    # 檢查是否包含收入關鍵詞
-    income_keywords = ["收入", "薪水", "薪資", "工資", "獎金", "紅包"]
-    for keyword in income_keywords:
-        if keyword in text:
-            transaction_type = "income"
-            break
-    
-    # 提取金額
-    amount_match = re.search(r'(\d+(?:\.\d+)?)\s*(?:元|塊|圓|dollars?|NT\$?)?', text)
-    amount = float(amount_match.group(1)) if amount_match else 0
-    
-    # 提取項目名稱（假設金額前的文字為項目名稱）
-    item = text
-    if amount_match:
-        item = text[:amount_match.start()].strip()
-    
-    # 如果項目為空，使用預設值
-    if not item:
-        item = "未命名項目"
-    
-    # 根據項目名稱猜測類別
-    category = guess_category(item, transaction_type)
-    
-    return {
-        "type": transaction_type,
-        "item": item,
-        "category": category,
-        "amount": amount
-    }
-
-def guess_category(item, transaction_type):
-    """
-    根據項目名稱猜測類別
-    
-    Args:
-        item (str): 項目名稱
-        transaction_type (str): 交易類型
-        
-    Returns:
-        str: 猜測的類別
-    """
-    if transaction_type == "income":
-        return "income"
-    
-    # 食物類別關鍵詞
-    food_keywords = ["咖啡", "飯", "餐", "食", "麵", "早餐", "午餐", "晚餐", "宵夜", "飲料", "水果"]
-    for keyword in food_keywords:
-        if keyword in item:
-            return "food"
-    
-    # 交通類別關鍵詞
-    transport_keywords = ["車", "票", "捷運", "公車", "計程車", "高鐵", "火車", "油", "加油"]
-    for keyword in transport_keywords:
-        if keyword in item:
-            return "transport"
-    
-    # 住宿類別關鍵詞
-    housing_keywords = ["房租", "水電", "電費", "水費", "瓦斯", "網路費"]
-    for keyword in housing_keywords:
-        if keyword in item:
-            return "housing"
-    
-    # 娛樂類別關鍵詞
-    entertainment_keywords = ["電影", "遊戲", "玩", "旅遊", "旅行", "門票"]
-    for keyword in entertainment_keywords:
-        if keyword in item:
-            return "entertainment"
-    
-    # 預設類別
-    return "other"
 
 def validate_transaction(transaction):
     """
