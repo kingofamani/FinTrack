@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FinTrack MVP</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>FinTrack MVP</h1>
+            <p>簡單語音記帳，輕鬆追蹤財務</p>
+        </header>
+
+        <section class="summary-section">
+            <h2>本月總覽</h2>
+            <div class="summary-cards">
+                <div class="card">
+                    <h3>收入</h3>
+                    <p id="total-income">0 元</p>
+                </div>
+                <div class="card">
+                    <h3>支出</h3>
+                    <p id="total-expense">0 元</p>
+                </div>
+                <div class="card">
+                    <h3>儲蓄</h3>
+                    <p id="total-savings">0 元</p>
+                </div>
+            </div>
+        </section>
+
+        <section class="voice-section">
+            <h2>語音記帳</h2>
+            <p>點擊按鈕並說出交易內容，例如「咖啡 5 元」</p>
+            <button id="voice-btn" class="btn-primary">開始語音輸入</button>
+            <p id="recording-status"></p>
+            <div id="transcription-result" class="hidden">
+                <h3>識別結果</h3>
+                <p id="transcription-text"></p>
+                <div class="transaction-preview">
+                    <p>類型: <span id="preview-type"></span></p>
+                    <p>項目: <span id="preview-item"></span></p>
+                    <p>類別: <span id="preview-category"></span></p>
+                    <p>金額: <span id="preview-amount"></span> 元</p>
+                </div>
+                <button id="confirm-btn" class="btn-secondary">確認記錄</button>
+                <button id="cancel-btn" class="btn-secondary">取消</button>
+            </div>
+        </section>
+
+        <section class="transactions-section">
+            <h2>最近交易</h2>
+            <div id="recent-transactions">
+                <p>尚無交易記錄</p>
+            </div>
+        </section>
+
+        <section class="gamification-section">
+            <h2>遊戲化</h2>
+            <div class="gamification-cards">
+                <div class="card">
+                    <h3>總點數</h3>
+                    <p id="total-points">0</p>
+                </div>
+                <div class="card">
+                    <h3>連續記錄</h3>
+                    <p id="streak-days">0 天</p>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/speechRecognizer.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/webSpeechRecognizer.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+</body>
+</html> 

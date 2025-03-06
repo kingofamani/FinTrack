@@ -1,0 +1,23 @@
+# Python 虛擬環境
+.venv/
+venv/
+env/
+ENV/
+
+# Python 編譯檔案
+__pycache__/
+*.py[cod]
+*$py.class
+
+# 本地數據檔案
+transactions.json
+
+# IDE 檔案
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# 系統檔案
+.DS_Store
+Thumbs.db 
