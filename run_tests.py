@@ -1,10 +1,14 @@
 import unittest
 import sys
+import os
+
+# 添加 tests 目錄到 Python 路徑
+sys.path.append(os.path.join(os.path.dirname(__file__), 'tests'))
 
 # 導入測試模塊
-from test_app import TestApp
-from test_aiParser import TestLocalRuleParser, TestOpenAIParser, TestXAIGrokParser, TestCreateParser
-from test_localJsonStorage import TestLocalJsonStorage
+from tests.test_app import TestApp
+from tests.test_aiParser import TestLocalRuleParser, TestOpenAIParser, TestXAIGrokParser, TestCreateParser
+from tests.test_localJsonStorage import TestLocalJsonStorage
 
 if __name__ == '__main__':
     # 創建測試套件

@@ -1,0 +1,87 @@
+﻿{
+  "rules": [
+    {
+      "name": "Python",
+      "pattern": "**/*.py",
+      "autoformat": true,
+      "linting": {
+        "enabled": true,
+        "pylint": true,
+        "flake8": true
+      }
+    },
+    {
+      "name": "HTML",
+      "pattern": "**/*.html",
+      "autoformat": true
+    },
+    {
+      "name": "JavaScript",
+      "pattern": "**/*.js",
+      "autoformat": true,
+      "linting": {
+        "enabled": true,
+        "eslint": true
+      }
+    },
+    {
+      "name": "CSS",
+      "pattern": "**/*.css",
+      "autoformat": true
+    },
+    {
+      "name": "JSON",
+      "pattern": "**/*.json",
+      "autoformat": true
+    },
+    {
+      "name": "VirtualEnv",
+      "pattern": ".venv/**",
+      "exclude": true
+    },
+    {
+      "name": "Coverage",
+      "pattern": ".coverage",
+      "exclude": true
+    },
+    {
+      "name": "PythonCache",
+      "pattern": "**/__pycache__/**",
+      "exclude": true
+    }
+  ],
+  "formatOnSave": true,
+  "snippets": {
+    "python": {
+      "unittest": {
+        "prefix": "test",
+        "body": [
+          "def test_${1:function_name}(self):",
+          "    \"\"\"測試 ${2:description}\"\"\"",
+          "    ${0:pass}"
+        ],
+        "description": "創建一個單元測試方法"
+      },
+      "flask_route": {
+        "prefix": "route",
+        "body": [
+          "@app.route('/${1:path}', methods=['${2:GET}'])",
+          "def ${3:function_name}():",
+          "    ${0:pass}"
+        ],
+        "description": "創建一個 Flask 路由"
+      }
+    },
+    "html": {
+      "form": {
+        "prefix": "form",
+        "body": [
+          "<form action=\"${1:/}\" method=\"${2:post}\">",
+          "    ${0}",
+          "</form>"
+        ],
+        "description": "HTML 表單"
+      }
+    }
+  }
+}
